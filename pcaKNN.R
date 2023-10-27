@@ -4,21 +4,21 @@ library(embed)
 library(vroom)
 
 
-trainData = vroom("train.csv") %>% mutate(ACTION = as.factor(ACTION))
-testData = vroom("test.csv")
-
+# trainData = vroom("train.csv") %>% mutate(ACTION = as.factor(ACTION))
+# testData = vroom("test.csv")
+# 
 
 knnModel = nearest_neighbor(neighbors = tune()) %>%
   set_mode("classification") %>%
   set_engine("kknn")
 
 
-my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
-  step_mutate_at(all_numeric_predictors(), fn = factor) %>% # turn all numeric features into factors5
-  step_other(all_nominal_predictors(), threshold = .001) %>% # combines categorical values that occur <5% into an "other" value6
-  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
-  step_normalize(all_predictors()) %>%
-  step_pca(all_predictors(), threshold = .87654321)
+# my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
+#   step_mutate_at(all_numeric_predictors(), fn = factor) %>% # turn all numeric features into factors5
+#   step_other(all_nominal_predictors(), threshold = .001) %>% # combines categorical values that occur <5% into an "other" value6
+#   step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
+#   step_normalize(all_predictors()) %>%
+#   step_pca(all_predictors(), threshold = .87654321)
 
 knn_workflow = workflow()  %>%
   add_recipe(my_recipe) %>% add_model(knnModel)
@@ -45,4 +45,4 @@ sub = testData %>% mutate(
 ) %>% select(Id, Action)
 
 
-vroom_write(sub, "pca_kknn2.csv", delim = ",")
+vroom_write(sub, "smote_pca_kknn2.csv", delim = ",")

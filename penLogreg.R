@@ -3,19 +3,19 @@ library(tidyverse)
 library(embed)
 library(vroom)
 
-
-trainData = vroom("train.csv") %>% mutate(ACTION = as.factor(ACTION))
-testData = vroom("test.csv")
+# 
+# trainData = vroom("train.csv") %>% mutate(ACTION = as.factor(ACTION))
+# testData = vroom("test.csv")
 
 
 logRegModel = logistic_reg(mixture = tune(), penalty = tune()) %>%
   set_engine("glmnet")
 
 
-my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
-  step_mutate_at(all_numeric_predictors(), fn = factor) %>% # turn all numeric features into factors5
-  #step_other(all_nominal_predictors(), threshold = .001) %>% # combines categorical values that occur <5% into an "other" value6
-  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION))
+# my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
+#   step_mutate_at(all_numeric_predictors(), fn = factor) %>% # turn all numeric features into factors5
+#   #step_other(all_nominal_predictors(), threshold = .001) %>% # combines categorical values that occur <5% into an "other" value6
+#   step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION))
 
 
 logReg_workflow = workflow()  %>%
@@ -43,7 +43,7 @@ sub = testData %>% mutate(
 ) %>% select(Id, Action)
 
 
-vroom_write(sub, "penLogit_2.csv", delim = ",")
+vroom_write(sub, "smote_penLogit_2.csv", delim = ",")
 
 
 

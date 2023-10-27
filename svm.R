@@ -11,7 +11,7 @@ testData = vroom("test.csv")
 
 bayesRegModel = naive_Bayes(Laplace = tune(), smoothness= tune()) %>%
   set_mode("classification") %>%
-  set_engine("naivebayes")
+  set_engine("kernlab")
 
 
 my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
@@ -19,21 +19,26 @@ my_recipe <- recipe(ACTION ~ ., data=trainData) %>%
   #step_other(all_nominal_predictors(), threshold = .001) %>% # combines categorical values that occur <5% into an "other" value6
   step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
   step_normalize(all_predictors()) %>%
-  step_pca(all_predictors(), threshold = .9012765)
+  step_pca(all_predictors(), threshold = .54321)
 
-bayesReg_workflow = workflow()  %>%
-  add_recipe(my_recipe) %>% add_model(bayesRegModel)
+svmRadial = svm_rbf(rbf_sigma = tune(), cost = tune()) %>%
+  set_mode("classification") %>%
+  set_engine("kernlab")
 
-tuning_grid = grid_regular(Laplace(), smoothness(), levels = 5)
+
+svmReg_workflow = workflow()  %>%
+  add_recipe(my_recipe) %>% add_model(svmRadial)
+
+tuning_grid = grid_regular(rbf_sigma(), cost(), levels = 2)
 
 folds = vfold_cv(trainData, v = 5, repeats = 1)
 
-CV_results = bayesReg_workflow %>% tune_grid(resamples = folds, grid = tuning_grid,
+CV_results = svmReg_workflow %>% tune_grid(resamples = folds, grid = tuning_grid,
                                              metrics = metric_set(roc_auc, precision))
 
 bestTune = CV_results %>% select_best("roc_auc")
 
-final_wf = bayesReg_workflow %>% finalize_workflow(bestTune) %>% fit(trainData)
+final_wf = svmReg_workflow %>% finalize_workflow(bestTune) %>% fit(trainData)
 
 
 amazon_preds = predict(final_wf, new_data = testData, type = "prob")
@@ -45,4 +50,4 @@ sub = testData %>% mutate(
 ) %>% select(Id, Action)
 
 
-vroom_write(sub, "smote_pca_bayesLogit_2.csv", delim = ",")
+vroom_write(sub, "smote_pca_SVM_2.csv", delim = ",")
